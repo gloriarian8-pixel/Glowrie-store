@@ -51,7 +51,22 @@ function addToCart(id){const p=products.find(x=>String(x.id)===String(id));if(!p
 function renderCart(){let total=0;$('cartItems').innerHTML=cart.length?cart.map(x=>{const p=products.find(p=>String(p.id)===String(x.id));if(!p)return '';total+=Number(p.price)*x.qty;return `<div class="itemline"><div><b>${esc(p.name)}</b><div class="muted">${money(p.price)} × ${x.qty}</div></div><button class="secondary" data-remove="${esc(x.id)}" style="flex:0 0 auto">Remove</button></div>`}).join(''):'<div class="empty">Your bag is empty.</div>';if(cart.length){$('cartItems').innerHTML+=`<p><b>Total: ${money(total)}</b></p>`;$('checkout').classList.remove('hidden')}else $('checkout').classList.add('hidden');$('cartCount').textContent=cart.reduce((n,x)=>n+x.qty,0)}
 $('cartItems').addEventListener('click',e=>{const b=e.target.closest('[data-remove]');if(b){cart=cart.filter(x=>String(x.id)!==b.dataset.remove);renderCart()}});
 $('sendOrder').onclick=()=>{if(!cart.length)return;const name=$('customerName').value.trim(),area=$('customerArea').value.trim(),phone=$('customerPhone').value.trim();if(!name||!area||!phone)return alert('Please enter your name, delivery area and phone number.');const lines=cart.map(x=>{const p=products.find(p=>String(p.id)===String(x.id));return `${p.name} x${x.qty} - ${money(Number(p.price)*x.qty)}`});const total=cart.reduce((s,x)=>s+Number(products.find(p=>String(p.id)===String(x.id)).price)*x.qty,0),payment=$('payment').value;const msg=`Hello Glowrie! I'd like to place an order:\n${lines.join('\n')}\n\nTotal: ${money(total)}\nName: ${name}\nPhone: ${phone}\nDelivery area: ${area}\nPayment: ${payment}`;window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg),'_blank');cart=[];renderCart();alert('Your order message is ready in WhatsApp. Please send it there to complete your request.')};
-$('search').addEventListener('input',renderProducts);$('cartBtn').onclick=()=>{$('cartSection').classList.toggle('hidden');renderCart()};$('closeCart').onclick=()=>$('cartSection').classList.add('hidden');$('adminBtn').onclick=()=>{$('admin').classList.toggle('hidden');$('admin').scrollIntoView({behavior:'smooth'})};$('exploreBtn').onclick=()=>$('shop').scrollIntoView({behavior:'smooth'});
+$('adminBtn').onclick=async()=>{
+  $('admin').classList.remove('hidden');
+  $('admin').scrollIntoView({behavior:'smooth'});
+
+  const {data}=await db.auth.getSession();
+  const user=data?.session?.user;
+
+  if(user && user.email?.toLowerCase()===ADMIN_EMAIL){
+    session=data.session;
+    showDashboard(user);
+  }else{
+    session=null;
+    $('dashboard').classList.add('hidden');
+    $('loginPanel').classList.remove('hidden');
+  }
+};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>{x.classList.remove('active');x.classList.add('secondary')});b.classList.add('active');b.classList.remove('secondary');$('manage').classList.toggle('hidden',b.dataset.tab!=='manage');$('orders').classList.toggle('hidden',b.dataset.tab!=='orders')});
 $('products').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b)addToCart(b.dataset.add)});
 if(setup()){loadProducts();checkSession();db.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(!newSession){$('dashboard').classList.add('hidden');$('loginPanel').classList.remove('hidden')}else if((newSession.user.email||'').toLowerCase()===ADMIN_EMAIL)showDashboard(newSession.user)})}
