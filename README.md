@@ -1,22 +1,23 @@
-# Glowrie storefront — Supabase-connected starter
+# Glowrie storefront — updated deployment package
 
 Brand: Glowrie — “Little luxuries. Everyday glow.”
 
-## Before deployment
-1. Open `config.js` in a text editor.
-2. Replace `PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE` with the Supabase **publishable** key from Project Settings → API Keys.
-3. Do not use a `service_role` or secret key in the website.
-4. Upload the contents of the `glowrie-store` folder to Netlify (or deploy the ZIP contents using Netlify Drop).
-
-## Included
-- Public product listing from the Supabase `products` table, showing only rows where `active = true`.
-- Supabase email/password sign-in restricted in the interface to `gloriarian8@gmail.com`.
-- Admin product creation, editing, hiding/showing and deletion, plus stock management.
-- Admin-only order list reading from `orders`.
+## What is included
+- Mobile-friendly Glowrie storefront.
+- Supabase product listing and admin sign-in.
+- Product name, category, description, price, stock, visibility, edit and delete.
+- Product photo upload from a phone to the existing Supabase Storage bucket named exactly `Glowrie`, or an image URL.
+- Admin order list (for orders created by a future secure checkout integration).
 - WhatsApp checkout handoff to +254717424442.
 
+## Before deploying this updated version
+1. In Supabase, open SQL Editor for the Glowrie project.
+2. Open `setup.sql`, copy all its contents, paste into SQL Editor, and run it. This adds the `category` column and admin-only photo upload policies.
+3. Confirm the Storage bucket is named exactly `Glowrie` and is set to Public so customers can view product images. The SQL policies restrict uploads/changes/deletions to the authenticated admin email `gloriarian8@gmail.com`.
+4. Keep the existing `config.js` file with the Supabase project URL and publishable key. Never replace the publishable key with a service-role or secret key.
+5. Deploy the contents of this folder (the files inside the ZIP, not the ZIP itself) to the existing Netlify site only after the SQL step is complete.
+
 ## Important limitations
-- Product images currently use an image URL; image upload/storage bucket setup is not included.
-- WhatsApp checkout does not create a database order. A secure server-side checkout function is still required before customer orders can be saved in Supabase.
-- M-Pesa Daraja is not integrated. Manual M-Pesa confirmation/WhatsApp is the current process.
-- The Supabase publishable key is intended for browser use; database security depends on correct RLS policies. Test admin access and public access before taking live orders.
+- WhatsApp checkout opens a prepared message; it does not automatically create a row in the Supabase `orders` table.
+- M-Pesa Daraja online payment is not integrated. Payment is arranged/confirmed manually on WhatsApp.
+- Do not enable public write access to products, orders, payments, or Storage. Keep the existing database Row Level Security policies.
